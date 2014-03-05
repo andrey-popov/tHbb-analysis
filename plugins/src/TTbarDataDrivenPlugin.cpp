@@ -1,4 +1,6 @@
-#include <TTbarDataDrivePlugin.hpp>
+#include <TTbarDataDrivenPlugin.hpp>
+
+#include <TFile.h>
 
 #include <fstream>
 #include <algorithm>
@@ -8,27 +10,27 @@
 using namespace std;
 
 
-TTbarDataDrivePlugin::TTbarDataDrivePlugin(string const &name_, int region_) noexcept:
+TTbarDataDrivenPlugin::TTbarDataDrivenPlugin(string const &name_, Region region_) noexcept:
   Plugin(name_),
-  reader(nullptr)
+  JetBTagDataDrivenPlugin(name_),
+  reader(nullptr),
+  region(region_)
+{}
+
+
+Plugin *TTbarDataDrivenPlugin::Clone() const
 {
-  region = region_;
+  return new TTbarDataDrivenPlugin(name, region);
 }
 
 
-Plugin *TTbarDataDrivePlugin::Clone() const
-{
-  return new TTbarDataDrivePlugin(name,region);
-}
-
-
-TTbarDataDrivePlugin::~TTbarDataDrivePlugin() noexcept
+TTbarDataDrivenPlugin::~TTbarDataDrivenPlugin() noexcept
 {
 
 }
 
 
-void TTbarDataDrivePlugin::BeginRun(Dataset const &dataset)
+void TTbarDataDrivenPlugin::BeginRun(Dataset const &dataset)
 {
     // Read in flavor combination fractions
     ifstream flavcombofile("flavpermfile_muon_tight_ttbar-mg_rev468_xYe.txt");
@@ -112,7 +114,7 @@ void TTbarDataDrivePlugin::BeginRun(Dataset const &dataset)
 }
 
 
-bool TTbarDataDrivePlugin::ProcessEvent()
+bool TTbarDataDrivenPlugin::ProcessEvent()
 {
   // Put all the reconstructed jets into a single vector
   allJets.clear();
@@ -407,15 +409,15 @@ bool TTbarDataDrivePlugin::ProcessEvent()
 }
 
 
-vector<int> const &TTbarDataDrivePlugin::GetTaggedJetIndices() const
+vector<int> const &TTbarDataDrivenPlugin::GetTaggedJetIndices() const
 {
-  if (region == 3) return taggedjets3t;
+  if (region == Region::r3t) return taggedjets3t;
   else return taggedjets4t;
 }
 
 
-double TTbarDataDrivePlugin::GetWeight() const
+double TTbarDataDrivenPlugin::GetWeight() const
 {
-  if (region == 3) return ttweight3T;
+  if (region == Region::r3t) return ttweight3T;
   else return ttweight4T;
 }

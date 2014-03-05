@@ -1,38 +1,44 @@
 /**
- * \file TTbarDataDrivePlugin.hpp
+ * \file TTbarDataDrivenPlugin.hpp
  * \author Daniel Knowlton
  * 
  */
 
 #pragma once
 
-#include <Plugin.hpp>
+#include <JetBTagDataDrivenPlugin.hpp>
 
 #include <PECReaderPlugin.hpp>
 #include <PhysicsObjects.hpp>
 
-#include <TFile.h>
-#include <TTree.h>
-#include <TH1.h>
 #include <TRandom3.h>
+#include <TH1F.h>
 
 #include <string>
 #include <vector>
 
 
 /**
- * \class TTbarDataDrivePlugin
+ * \class TTbarDataDrivenPlugin
  */
-class TTbarDataDrivePlugin: public Plugin
+class TTbarDataDrivenPlugin: public JetBTagDataDrivenPlugin
 {
+public:
+  /// Supported signal regions
+  enum class Region
+  {
+    r3t,
+    r4t
+  };
+  
 public:
   /**
    * \brief Constructor
    */
-  TTbarDataDrivePlugin(std::string const &name, int region) noexcept;
+  TTbarDataDrivenPlugin(std::string const &name, Region region) noexcept;
     
   /// Trivial destructor
-  virtual ~TTbarDataDrivePlugin() noexcept;
+  virtual ~TTbarDataDrivenPlugin() noexcept;
      
 public:
   /**
@@ -44,7 +50,7 @@ public:
 
   virtual void BeginRun(Dataset const &dataset);
     
-  virtual double GetWeight() const = 0;
+  virtual double GetWeight() const;
     
   virtual std::vector<int> const &GetTaggedJetIndices() const;
 
@@ -59,8 +65,7 @@ protected:
   /// Pointer to PECReaderPlugin
   PECReaderPlugin const *reader;
 
-  std::string const *name;
-  int region;
+  Region region;
 
   bool isMC;
 
