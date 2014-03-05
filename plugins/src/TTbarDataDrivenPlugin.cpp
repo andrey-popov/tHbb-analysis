@@ -138,9 +138,15 @@ bool TTbarDataDrivenPlugin::ProcessEvent()
 {
   // A short-cut
   auto const &allJets = (*reader)->GetJets();
+  int const nJets = allJets.size();
+  
+  
+  // Filter on the allowed number of jets
+  if ((region == Region::r3t and nJets < 4) or (region == Region::r4t and nJets < 5))
+    return false;
+  
 
-  // Count jets and tags
-  int nJets = allJets.size();
+  // Count tags
   int NTagsTotal = 0;
 
   for (auto const &j: allJets){
@@ -360,6 +366,12 @@ bool TTbarDataDrivenPlugin::ProcessEvent()
     //if (numSR3T > 0. && demCR > 0.) ttweight3TVar = ttweight3T * ttweight3T * ( num3TVar / (numSR3T * numSR3T) + demVar / (demCR * demCR) );
     //if (numSR4T > 0. && demCR > 0.) ttweight4TVar = ttweight4T * ttweight4T * ( num4TVar / (numSR4T * numSR4T) + demVar / (demCR * demCR) );
   }
+  
+  
+  // Regect event if its weight is zero
+  if ((region == Region::r3t and ttweight3T == 0.) or (region == Region::r4t and ttweight4T == 0.))
+    return false;
+  
 
   // Fills a map of the chosen tagging combinations for 3t and 4t
   // If P(3t) or P(4t) > 0
