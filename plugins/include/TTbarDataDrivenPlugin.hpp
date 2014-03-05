@@ -35,7 +35,8 @@ public:
   /**
    * \brief Constructor
    */
-  TTbarDataDrivenPlugin(std::string const &name, Region region) noexcept;
+  TTbarDataDrivenPlugin(std::string const &name, Region region, std::string const &filePrefix)
+   noexcept;
     
   /// Trivial destructor
   virtual ~TTbarDataDrivenPlugin() noexcept;
@@ -60,7 +61,11 @@ public:
   bool ProcessEvent();
     
 protected:
+  /// Selected signal region
   Region region;
+  
+  /// File prefix to resolve names of input files
+  std::string filePrefix;
 
   bool isMC;
 
@@ -85,9 +90,6 @@ protected:
 
   TRandom3 r3;
   
-  float ttweight3T = 0.;
-  float ttweight4T = 0.;
-  std::vector<int> taggedjets3t;
-  std::vector<int> taggedjets4t;
-
+  float ttweight3T;
+  float ttweight4T;
 };

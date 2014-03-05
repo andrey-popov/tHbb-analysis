@@ -12,23 +12,25 @@
 using namespace std;
 
 
-TTbarDataDrivenPlugin::TTbarDataDrivenPlugin(string const &name_, Region region_) noexcept:
+TTbarDataDrivenPlugin::TTbarDataDrivenPlugin(string const &name_, Region region_,
+ string const &filePrefix_) noexcept:
   Plugin(name_),
   JetBTagDataDrivenPlugin(name_),
-  region(region_)
-{}
+  region(region_), filePrefix(filePrefix_)
+{
+  if (filePrefix.at(filePrefix.length() - 1) != '/')
+    filePrefix += '/';
+}
 
 
 Plugin *TTbarDataDrivenPlugin::Clone() const
 {
-  return new TTbarDataDrivenPlugin(name, region);
+  return new TTbarDataDrivenPlugin(name, region, filePrefix);
 }
 
 
 TTbarDataDrivenPlugin::~TTbarDataDrivenPlugin() noexcept
-{
-
-}
+{}
 
 
 void TTbarDataDrivenPlugin::BeginRun(Dataset const &dataset)
@@ -37,7 +39,7 @@ void TTbarDataDrivenPlugin::BeginRun(Dataset const &dataset)
   JetBTagDataDrivenPlugin::BeginRun(dataset);
   
     // Read in flavor combination fractions
-    ifstream flavcombofile("flavpermfile_muon_tight_ttbar-mg_rev468_xYe.txt");
+    ifstream flavcombofile(filePrefix + "flavpermfile_muon_tight_ttbar-mg_rev468_xYe.txt");
     if ( !flavcombofile.good() ) throw logic_error("flavcombofile not opened correctly");
     static float FlavCombos[11][5][5][5][5][5][5][5][5][5][5];
     for (int i0 = 4; i0 < 11; ++i0){  // N-jet
@@ -101,7 +103,7 @@ void TTbarDataDrivenPlugin::BeginRun(Dataset const &dataset)
     ROOTLock::Lock();
     
     // Read in Tagging Efficiencies
-    TFile eff2D("effcalc_muon_tight_ttbar-mg_rev468_xYe.root");
+    TFile eff2D((filePrefix + "effcalc_muon_tight_ttbar-mg_rev468_xYe.root").c_str());
     if ( !eff2D.IsOpen() ) throw logic_error("efficiency file not opened correctly");
     effbpt = (TH1F*)eff2D.Get("eff_bpt");
     effbeta = (TH1F*)eff2D.Get("eff_beta");
@@ -146,7 +148,8 @@ bool TTbarDataDrivenPlugin::ProcessEvent()
       ++NTagsTotal;
   }
 
-  if (NTagsTotal < 2 || NTagsTotal > 2) return false;
+  if (NTagsTotal < 2 || NTagsTotal > 2)
+    throw logic_error("TTbarDataDrivenPlugin::ProcessEvent: Unexpected number of b-tagged jets.");
 
   // Define tagging efficiencies and btag SFs
   // This will later be done through the framework
