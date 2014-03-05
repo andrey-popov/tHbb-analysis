@@ -11,9 +11,9 @@
 using namespace std;
 
 
-GlobalRecoTTbarPlugin::GlobalRecoTTbarPlugin(string const &name_ /*= string("")*/):
-    RecoTTbarPlugin((name_.length() == 0) ? "GlobalRecoTTbar" : name_),
-    mvaReco("Silent")
+GlobalRecoTTbarPlugin::GlobalRecoTTbarPlugin(string const &name_, string const &bTagPluginName_):
+    RecoTTbarPlugin(name_),
+    bTagPluginName(bTagPluginName_), mvaReco("Silent")
 {
     // Specify input variables and MVA for event reconstruction
     mvaReco.AddVariable("log(Mass_TopHad - Mass_WHad)", &LogDMass_TopHadWHad);
@@ -40,14 +40,15 @@ GlobalRecoTTbarPlugin::GlobalRecoTTbarPlugin(string const &name_ /*= string("")*
 
 Plugin *GlobalRecoTTbarPlugin::Clone() const
 {
-    return new GlobalRecoTTbarPlugin(name);
+    return new GlobalRecoTTbarPlugin(name, bTagPluginName);
 }
 
 
 void GlobalRecoTTbarPlugin::BeginRun(Dataset const &)
 {
-    // Save pointer to the reader plugin
+    // Save pointers to required plugins
     reader = dynamic_cast<PECReaderPlugin const *>(processor->GetPluginBefore("Reader", name));
+    bTagger = dynamic_cast<BTaggerPlugin const *>(processor->GetPluginBefore(bTagPluginName, name));
 }
 
 
@@ -180,7 +181,7 @@ void GlobalRecoTTbarPlugin::CalculateVariables(Jet const &bTopLep, Jet const &bT
     
     //bfPt_BTopLep = bTopLep.Pt();
     //bfEta_BTopLep = bTopLep.Eta();
-    PassBTag_BTopLep = 0. + (bTopLep.CSV() > 0.898);
+    PassBTag_BTopLep = 0 + bTagger->IsTagged(bTopLep);
     //bfCharge_BTopLep = bTopLep.Charge() * lepton.Charge();
     
     LogMass_BTopLepLep = log((bTopLep.P4() + lepton.P4()).M());
@@ -217,13 +218,13 @@ void GlobalRecoTTbarPlugin::CalculateVariables(Jet const &bTopLep, Jet const &bT
     
     //bfPt_BTopHad = bTopHad.Pt();
     //bfEta_BTopHad = bTopHad.Eta();
-    PassBTag_BTopHad = 0. + (bTopHad.CSV() > 0.898);
+    PassBTag_BTopHad = 0 + bTagger->IsTagged(bTopHad);
     //bfCharge_BTopHad = bTopHad.Charge() * lepton.Charge();
     
     //bfMinPt_Light = min(fabs(q1TopHad.Pt()), fabs(q2TopHad.Pt()));
     //bfMaxEta_Light = max(fabs(q1TopHad.Eta()), fabs(q2TopHad.Eta()));
     SumCharge_Light = (q1TopHad.Charge() + q2TopHad.Charge()) * lepton.Charge();
-    NumBTag_Light = 0. + (q1TopHad.CSV() > 0.898) + (q2TopHad.CSV() > 0.898);
+    NumBTag_Light = 0 + bTagger->IsTagged(q1TopHad) + bTagger->IsTagged(q2TopHad);
     
     DeltaR_Light = q1TopHad.P4().DeltaR(q2TopHad.P4());
     // bfMaxMass_BTopHadLight =

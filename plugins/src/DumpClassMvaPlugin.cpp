@@ -14,9 +14,11 @@
 using namespace std;
 
 
-DumpClassMvaPlugin::DumpClassMvaPlugin(string const &outDirectory_, string const &filePostfix_,
+DumpClassMvaPlugin::DumpClassMvaPlugin(string const &name_, string const &bTagPluginName_,
+ string const &weightPluginName_, string const &outDirectory_, string const &filePostfix_,
  bool saveSystWeights_):
-    Plugin("DumpClassMva"),
+    Plugin(name_),
+    bTagPluginName(bTagPluginName_), weightPluginName(weightPluginName_),
     mva("Silent"),
     outDirectory(outDirectory_), filePostfix(filePostfix_),
     saveSystWeights(saveSystWeights_)
@@ -65,7 +67,8 @@ DumpClassMvaPlugin::DumpClassMvaPlugin(string const &outDirectory_, string const
 
 Plugin *DumpClassMvaPlugin::Clone() const
 {
-    return new DumpClassMvaPlugin(outDirectory, filePostfix, saveSystWeights);
+    return new DumpClassMvaPlugin(name, bTagPluginName, weightPluginName, outDirectory, filePostfix,
+     saveSystWeights);
 }
 
 
@@ -77,12 +80,15 @@ void DumpClassMvaPlugin::BeginRun(Dataset const &dataset)
      dynamic_cast<RecoTHPlugin const *>(processor->GetPluginBefore("RecoTH", name));
     builderTTbar =
      dynamic_cast<RecoTTbarPlugin const *>(processor->GetPluginBefore("RecoTTbar", name));
-    dataDrivenTTbar = dynamic_cast<JetTagDataDrivenPlugin const *>(
-     processor->GetPluginBeforeQuiet("DataDrivenTTbar", name));
+    bTagger = dynamic_cast<BTaggerPlugin const *>(processor->GetPluginBefore(bTagPluginName, name));
     
     // Save pointer to top-pt reweighter
     topPtReweighter = dynamic_cast<TopPtWeightPlugin const *>(
      processor->GetPluginBeforeQuiet("TopPtWeight", name));
+    
+    // And pointer to a plugin for additional reweighting
+    reweighter = dynamic_cast<EventWeightPlugin const *>(
+     processor->GetPluginBeforeQuiet(weightPluginName, name));
     
     
     // Creation of ROOT objects is not thread-safe and must be protected
@@ -187,7 +193,7 @@ bool DumpClassMvaPlugin::ProcessEvent()
     bfNumTag20 = 0;
     
     for (auto const &j: jets)
-        if (j.CSV() > 0.898)
+        if (bTagger->IsTagged(j))
             ++bfNumTag20;
     
     
@@ -257,7 +263,7 @@ bool DumpClassMvaPlugin::ProcessEvent()
     
     // thq_Pt_BTop = bTop.Pt();
     // thq_Eta_BTop = bTop.Eta();
-    // thq_PassBTag_BTop = 0. + (bTop.CSV() > 0.898);
+    // thq_PassBTag_BTop = 0 + bTagger->IsTagged(bTop);
     // thq_Charge_BTop = bTop.Charge() * lepton.Charge();
     
     // thq_DeltaR_BTopW = bTop.P4().DeltaR(wLep.P4());
@@ -268,7 +274,7 @@ bool DumpClassMvaPlugin::ProcessEvent()
     thq_LogPt_Higgs = log(higgs.Pt());
     // thq_Eta_Higgs = higgs.Eta();
     
-    thq_NumBTag_Higgs = 0. + (b1Higgs.CSV() > 0.898) + (b2Higgs.CSV() > 0.898);
+    thq_NumBTag_Higgs = 0 + bTagger->IsTagged(b1Higgs) + bTagger->IsTagged(b2Higgs);
     // thq_AbsCharge_Higgs = fabs(b1Higgs.Charge() + b2Higgs.Charge());
     // thq_MinPt_BHiggs = min(b1Higgs.Pt(), b2Higgs.Pt());
     // thq_MaxEta_BHiggs = max(fabs(b1Higgs.Eta()), fabs(b2Higgs.Eta()));
@@ -314,7 +320,7 @@ bool DumpClassMvaPlugin::ProcessEvent()
     
     // tt_Pt_BTopLep = bTopLep.Pt();
     // tt_Eta_BTopLep = bTopLep.Eta();
-    // tt_PassBTag_BTopLep = 0. + (bTopLep.CSV() > 0.898);
+    // tt_PassBTag_BTopLep = 0 + bTagger->IsTagged(bTopLep);
     // tt_Charge_BTopLep = bTopLep.Charge() * lepton.Charge();
     
     // tt_DeltaR_BTopLepWLep = bTopLep.P4().DeltaR(wLep.P4());
@@ -327,7 +333,7 @@ bool DumpClassMvaPlugin::ProcessEvent()
     
     // tt_Pt_BTopHad = bTopHad.Pt();
     // tt_Eta_BTopHad = bTopHad.Eta();
-    // tt_PassBTag_BTopHad = 0. + (bTopHad.CSV() > 0.898);
+    // tt_PassBTag_BTopHad = 0 + bTagger->IsTagged(bTopHad);
     tt_Charge_BTopHad = bTopHad.Charge() * lepton.Charge();
     
     // tt_DeltaR_BTopHadWHad = bTopHad.P4().DeltaR(wHad.P4());
@@ -340,7 +346,7 @@ bool DumpClassMvaPlugin::ProcessEvent()
     // tt_RelHt = (topHad.Pt() + topLep.Pt()) / glb_Ht;
     
     tt_DeltaR_Light = q1TopHad.P4().DeltaR(q2TopHad.P4());
-    tt_NumPassBTag_Light = 0. + (q1TopHad.CSV() > 0.898) + (q2TopHad.CSV() > 0.898);
+    tt_NumPassBTag_Light = 0 + bTagger->IsTagged(q1TopHad) + bTagger->IsTagged(q2TopHad);
     tt_MaxEta_Light = max(fabs(q1TopHad.Eta()), fabs(q2TopHad.Eta()));
     tt_SumCharge_Light = (q1TopHad.Charge() + q2TopHad.Charge()) * lepton.Charge();
     

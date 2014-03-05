@@ -1,15 +1,17 @@
 /**
- * \file JetTagDataDrivenPlugin.hpp
+ * \file JetBTagDataDrivenPlugin.hpp
  * \author Andrey Popov
  * 
  * Defines an abstract base class for a plugin to perform a data-driven estimation based on jet
- * tags of any kind.
+ * b-tags.
  */
 
 #pragma once
 
 #include <Plugin.hpp>
 
+#include <BTaggerPlugin.hpp>
+#include <EventWeightPlugin.hpp>
 #include <PECReaderPlugin.hpp>
 #include <PhysicsObjects.hpp>
 
@@ -18,16 +20,14 @@
 
 
 /**
- * \class JetTagDataDrivenPlugin
- * \brief Abstract base class for a data-driven estimation
+ * \class JetBTagDataDrivenPlugin
+ * \brief Abstract base class for a data-driven estimation based on b-tagging
  * 
- * The class provides an interface for a data-driven estimation that relies on jet tagging. Specific
- * way of tagging is not important. A derived class can assign each event a weight and can specify
- * which jets should be considered tagged, this information is communicated to the outer world with
- * the dedicated methods GetWeight and GetTaggedJetIndices. It is not known in which order these
- * methods will be called and if they will be executed at all.
+ * The class provides an interface for a data-driven estimation that relies on b-tagging. A derived
+ * class is expected to store indices of jets that should be considered as b-tagged in the vector
+ * taggedJetIndices. Several convenience functions to access b-tagging information are provided.
  */
-class JetTagDataDrivenPlugin: public Plugin
+class JetBTagDataDrivenPlugin: public BTaggerPlugin, public EventWeightPlugin
 {
 public:
     /**
@@ -35,10 +35,13 @@ public:
      * 
      * Forwards the given name to the constructor of Plugin.
      */
-     JetTagDataDrivenPlugin(std::string const &name) noexcept;
+    JetBTagDataDrivenPlugin(std::string const &name) noexcept;
+    
+    /// Copy constructor
+    JetBTagDataDrivenPlugin(JetBTagDataDrivenPlugin const &src) noexcept;
     
     /// Trivial destructor
-    virtual ~JetTagDataDrivenPlugin() noexcept;
+    virtual ~JetBTagDataDrivenPlugin() noexcept;
      
 public:
     /**
@@ -49,14 +52,6 @@ public:
      * method should be called explicitly from its override.
      */
     virtual void BeginRun(Dataset const &dataset);
-    
-    /**
-     * \brief Returns event weight
-     * 
-     * The method might be called several times for each event. The second and subsequent calls
-     * should be cheap.
-     */
-    virtual double GetWeight() const = 0;
     
     /**
      * \brief Returns a vector of indices of tagged jets

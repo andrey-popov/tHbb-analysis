@@ -13,7 +13,8 @@
 #include <TopPtWeightPlugin.hpp>
 #include <RecoTHPlugin.hpp>
 #include <RecoTTbarPlugin.hpp>
-#include <JetTagDataDrivenPlugin.hpp>
+#include <BTaggerPlugin.hpp>
+#include <EventWeightPlugin.hpp>
 
 #include <TMVA/Reader.h>
 
@@ -36,8 +37,9 @@ public:
      * Accepts the name of the directory to host the produced files and a postfix to be applied
      * to the names of output files.
      */
-    DumpClassMvaPlugin(std::string const &outDirectory, std::string const &filePostfix,
-     bool saveSystWeights);
+    DumpClassMvaPlugin(std::string const &name, std::string const &bTagPluginName,
+     std::string const &weightPluginName, std::string const &outDirectory,
+     std::string const &filePostfix, bool saveSystWeights);
     
 public:
     /**
@@ -72,6 +74,16 @@ public:
     bool ProcessEvent();
     
 private:
+    /// Name of a b-tagging plugin
+    std::string bTagPluginName;
+    
+    /**
+     * \brief Name of a plugin to calculate event weight
+     * 
+     * Currently, used only for the data-driven ttbar.
+     */
+    std::string weightPluginName;
+    
     /// Pointer to PECReaderPlugin
     PECReaderPlugin const *reader;
     
@@ -84,8 +96,11 @@ private:
     /// Pointer to a plugin that performs reconstruction of an event under ttbar hypothersis
     RecoTTbarPlugin const *builderTTbar;
     
-    /// Pointer to a plugin for data-driven ttbar estimation
-    JetTagDataDrivenPlugin const *dataDrivenTTbar;
+    /// Pointer to a b-tagging plugin
+    BTaggerPlugin const *bTagger;
+    
+    /// Pointer to a plugin for additional reweighting
+    EventWeightPlugin const *reweighter;
     
     /// Classification MVA
     TMVA::Reader mva;

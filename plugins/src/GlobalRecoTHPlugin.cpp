@@ -11,9 +11,9 @@
 using namespace std;
 
 
-GlobalRecoTHPlugin::GlobalRecoTHPlugin(string const &name_ /*= string("")*/):
-    RecoTHPlugin((name_.length() == 0) ? "GlobalRecoTH" : name_),
-    mvaReco("Silent")
+GlobalRecoTHPlugin::GlobalRecoTHPlugin(string const &name_, string const &bTagPluginName_):
+    RecoTHPlugin(name_),
+    bTagPluginName(bTagPluginName_), mvaReco("Silent")
 {
     // Specify input variables and MVA for event reconstruction
     mvaReco.AddVariable("log(Mass_Higgs)", &LogMass_Higgs);
@@ -39,14 +39,15 @@ GlobalRecoTHPlugin::GlobalRecoTHPlugin(string const &name_ /*= string("")*/):
 
 Plugin *GlobalRecoTHPlugin::Clone() const
 {
-    return new GlobalRecoTHPlugin(name);
+    return new GlobalRecoTHPlugin(name, bTagPluginName);
 }
 
 
 void GlobalRecoTHPlugin::BeginRun(Dataset const &)
 {
-    // Save pointer to the reader plugin
+    // Save pointers to required plugins
     reader = dynamic_cast<PECReaderPlugin const *>(processor->GetPluginBefore("Reader", name));
+    bTagger = dynamic_cast<BTaggerPlugin const *>(processor->GetPluginBefore(bTagPluginName, name));
 }
 
 
@@ -183,7 +184,7 @@ void GlobalRecoTHPlugin::CalculateVariables(Jet const &bTop, Jet const &b1Higgs,
     DeltaR_BJetsHiggs = b1Higgs.P4().DeltaR(b2Higgs.P4());
     //bfSumCharge_Higgs = fabs(b1Higgs.Charge() + b2Higgs.Charge());
     
-    NumBTag_Higgs = 0 + (b1Higgs.CSV() > 0.898) + (b2Higgs.CSV() > 0.898);
+    NumBTag_Higgs = 0 + bTagger->IsTagged(b1Higgs) + bTagger->IsTagged(b2Higgs);
     
     LogMinPt_BHiggs = log(min(b1Higgs.Pt(), b2Higgs.Pt()));
     MaxEta_BHiggs = max(fabs(b1Higgs.Eta()), fabs(b2Higgs.Eta()));
@@ -200,7 +201,7 @@ void GlobalRecoTHPlugin::CalculateVariables(Jet const &bTop, Jet const &b1Higgs,
     
     //bfPt_BTop = bTop.Pt();
     //bfEta_BTop = bTop.Eta();
-    PassBTag_BTop = 0. + (bTop.CSV() > 0.898);
+    PassBTag_BTop = 0 + bTagger->IsTagged(bTop);
     Charge_BTop = bTop.Charge() * lepton.Charge();
     
     LogMass_BTopLep = log((bTop.P4() + lepton.P4()).M());
@@ -224,7 +225,7 @@ void GlobalRecoTHPlugin::CalculateVariables(Jet const &bTop, Jet const &b1Higgs,
     // Variables related to the recoil quark
     //bfPt_Recoil = recoil.Pt();
     AbsEta_Recoil = fabs(recoil.Eta());
-    PassBTag_Recoil = 0. + (recoil.CSV() > 0.898);
+    PassBTag_Recoil = 0 + bTagger->IsTagged(recoil);
     //bfCharge_Recoil = recoil.Charge();
     
     

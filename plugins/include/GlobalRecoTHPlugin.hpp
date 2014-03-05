@@ -10,6 +10,7 @@
 #include <RecoTHPlugin.hpp>
 
 #include <PECReaderPlugin.hpp>
+#include <BTaggerPlugin.hpp>
 
 #include <TMVA/Reader.h>
 
@@ -22,7 +23,6 @@
  * \brief Reconstructs a thq event exploiting correlations between the objects
  * 
  * \warning It considers only jets from PECReader::GetJets(), but not the "additional" jets.
- * Definition of b-tagged jets is hard-coded.
  */
 class GlobalRecoTHPlugin: public RecoTHPlugin
 {
@@ -30,9 +30,9 @@ public:
     /**
      * \brief Constructor
      * 
-     * Accepts an optional name of the instance of the plugin.
+     * The arguments are: name for this plugin and the name of a plugin to perform b-tagging.
      */
-    GlobalRecoTHPlugin(std::string const &name_ = std::string(""));
+    GlobalRecoTHPlugin(std::string const &name, std::string const &bTagPluginName);
     
 public:
     /**
@@ -81,8 +81,14 @@ private:
      Jet const &recoil);
 
 private:
+    /// Name of a plugin to perform b-tagging
+    std::string bTagPluginName;
+    
     /// Pointer to PECReaderPlugin
     PECReaderPlugin const *reader;
+    
+    /// Pointer to a b-tagging plugin
+    BTaggerPlugin const *bTagger;
     
     /// MVA to reconstruct an event
     TMVA::Reader mvaReco;
