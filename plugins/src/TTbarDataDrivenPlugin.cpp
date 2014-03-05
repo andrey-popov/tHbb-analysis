@@ -13,7 +13,6 @@ using namespace std;
 TTbarDataDrivenPlugin::TTbarDataDrivenPlugin(string const &name_, Region region_) noexcept:
   Plugin(name_),
   JetBTagDataDrivenPlugin(name_),
-  reader(nullptr),
   region(region_)
 {}
 
@@ -32,6 +31,9 @@ TTbarDataDrivenPlugin::~TTbarDataDrivenPlugin() noexcept
 
 void TTbarDataDrivenPlugin::BeginRun(Dataset const &dataset)
 {
+  // Initialize the reader object
+  JetBTagDataDrivenPlugin::BeginRun(dataset);
+  
     // Read in flavor combination fractions
     ifstream flavcombofile("flavpermfile_muon_tight_ttbar-mg_rev468_xYe.txt");
     if ( !flavcombofile.good() ) throw logic_error("flavcombofile not opened correctly");

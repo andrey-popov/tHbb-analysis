@@ -60,9 +60,6 @@ public:
   bool ProcessEvent();
     
 protected:
-  /// Pointer to PECReaderPlugin
-  PECReaderPlugin const *reader;
-
   Region region;
 
   bool isMC;
