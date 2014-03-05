@@ -52,8 +52,6 @@ public:
     
   virtual double GetWeight() const;
     
-  virtual std::vector<int> const &GetTaggedJetIndices() const;
-
   /**
    * \brief Processes the current event
    * 

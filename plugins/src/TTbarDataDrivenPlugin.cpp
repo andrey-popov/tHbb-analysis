@@ -358,66 +358,51 @@ bool TTbarDataDrivenPlugin::ProcessEvent()
     }
   }
 	
+  
+  // Reset the mask to choose b-tagged jets
+  JetBTagDataDrivenPlugin::jetTagBits.clear();
+  
+  for (int i = 0; i < nJets; ++i)
+    jetTagBits.push_back(false);
+  
+  
   if (region == Region::r3t)
   {
     // Randomly pick a tagging combination for the 3t model
-    float picktagconfig = r3.Rndm();
-    vector <int> tagarray3t (3);  // Contains the indices of tagged jets
-    float sumprobs = 0.;
+    double picktagconfig = r3.Rndm();
+    double sumprobs = 0.;
     for(map <float, vector<int> >::iterator iter = choosetagconfig3t.begin(); iter != choosetagconfig3t.end(); ++iter){
       sumprobs += iter->first;
-      if (sumprobs > picktagconfig){
-        copy ( (iter->second).begin(), (iter->second).end(), tagarray3t.begin() );
+      if (sumprobs > picktagconfig)
+      {
+        // Update the mask to choose b-tagged jets with the current tag configuration
+        for (auto const &index: iter->second)
+          jetTagBits.at(index) = true;
+        
         break;
       }
-    }
-    sort(tagarray3t.begin(),tagarray3t.end());
-    
-    // Fill a vector that defines each jet being tagged (1) or not (0)
-    for (int cjets = 0; cjets < nJets; ++cjets){
-      bool foundtag = false;
-      for (int ctags = 0; ctags < 3; ++ctags)
-        if (tagarray3t[ctags] == cjets)
-  	foundtag = true;
-      if (foundtag) taggedjets3t.push_back(1);
-      else taggedjets3t.push_back(0);
     }
   }
-  else
+  else  // the 4t region
   {
     // Randomly pick a tagging combination for the 4t model
-    picktagconfig = r3.Rndm();
-    vector <int> tagarray4t (4);
-    sumprobs = 0.;
+    double picktagconfig = r3.Rndm();
+    double sumprobs = 0.;
     for(map <float, vector<int> >::iterator iter = choosetagconfig4t.begin(); iter != choosetagconfig4t.end(); ++iter){
       sumprobs += iter->first;
-      if (sumprobs > picktagconfig){
-        copy ( (iter->second).begin(), (iter->second).end(), tagarray4t.begin() );
+      if (sumprobs > picktagconfig)
+      {
+        // Update the mask to choose b-tagged jets with the current tag configuration
+        for (auto const &index: iter->second)
+          jetTagBits.at(index) = true;
+        
         break;
       }
-    }
-    sort(tagarray4t.begin(),tagarray4t.end());
-
-    // Fill a vector that defines each jet being tagged (1) or not (0)
-    for (int cjets = 0; cjets < nJets; ++cjets){
-      bool foundtag = false;
-      for (int ctags = 0; ctags < 4; ++ctags)
-        if (tagarray4t[ctags] == cjets)
-  	foundtag = true;
-      if (foundtag) taggedjets4t.push_back(1);
-      else taggedjets4t.push_back(0);
     }
   }
     
   return true;
 
-}
-
-
-vector<int> const &TTbarDataDrivenPlugin::GetTaggedJetIndices() const
-{
-  if (region == Region::r3t) return taggedjets3t;
-  else return taggedjets4t;
 }
 
 
