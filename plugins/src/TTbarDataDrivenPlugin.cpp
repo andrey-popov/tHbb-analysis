@@ -198,9 +198,9 @@ bool TTbarDataDrivenPlugin::ProcessEvent()
   float num4TVar = 0.;
   float demVar = 0.;
   ttweight3T = 0.; 
-  float ttweight3TVar = 0.;
+  //float ttweight3TVar = 0.;
   ttweight4T = 0.; 
-  float ttweight4TVar = 0.;
+  //float ttweight4TVar = 0.;
 
   // Used for choosing tagged jets
   int tagfirst = -1;
@@ -338,8 +338,8 @@ bool TTbarDataDrivenPlugin::ProcessEvent()
     ttweight3T = numSR3T / demCR;
     ttweight4T = numSR4T / demCR;
     // Variance in the event weights (propagation of errors of numerator and denominator)
-    if (numSR3T > 0. && demCR > 0.) ttweight3TVar = ttweight3T * ttweight3T * ( num3TVar / (numSR3T * numSR3T) + demVar / (demCR * demCR) );
-    if (numSR4T > 0. && demCR > 0.) ttweight4TVar = ttweight4T * ttweight4T * ( num4TVar / (numSR4T * numSR4T) + demVar / (demCR * demCR) );
+    //if (numSR3T > 0. && demCR > 0.) ttweight3TVar = ttweight3T * ttweight3T * ( num3TVar / (numSR3T * numSR3T) + demVar / (demCR * demCR) );
+    //if (numSR4T > 0. && demCR > 0.) ttweight4TVar = ttweight4T * ttweight4T * ( num4TVar / (numSR4T * numSR4T) + demVar / (demCR * demCR) );
   }
 
   // Fills a map of the chosen tagging combinations for 3t and 4t
