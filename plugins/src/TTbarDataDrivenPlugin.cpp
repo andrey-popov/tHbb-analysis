@@ -18,8 +18,12 @@ TTbarDataDrivenPlugin::TTbarDataDrivenPlugin(string const &name_, Region region_
   JetBTagDataDrivenPlugin(name_),
   region(region_), filePrefix(filePrefix_)
 {
+  // Make sure the prefix ends with a slash
   if (filePrefix.at(filePrefix.length() - 1) != '/')
     filePrefix += '/';
+  
+  // Initialize the nominal weight
+  EventWeightPlugin::weights.push_back(0.);
 }
 
 
@@ -414,6 +418,9 @@ bool TTbarDataDrivenPlugin::ProcessEvent()
         break;
       }
     }
+    
+    // Update the nominal weight
+    weights.at(0) = ttweight3T;
   }
   else  // the 4t region
   {
@@ -431,15 +438,11 @@ bool TTbarDataDrivenPlugin::ProcessEvent()
         break;
       }
     }
+    
+    // Update the nominal weight
+    weights.at(0) = ttweight4T;
   }
     
   return true;
 
-}
-
-
-double TTbarDataDrivenPlugin::GetWeight() const
-{
-  if (region == Region::r3t) return ttweight3T;
-  else return ttweight4T;
 }

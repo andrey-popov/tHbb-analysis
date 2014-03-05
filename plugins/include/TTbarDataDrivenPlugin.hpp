@@ -51,8 +51,6 @@ public:
 
   virtual void BeginRun(Dataset const &dataset);
     
-  virtual double GetWeight() const;
-    
   /**
    * \brief Processes the current event
    * 

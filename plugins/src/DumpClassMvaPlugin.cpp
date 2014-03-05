@@ -180,6 +180,14 @@ bool DumpClassMvaPlugin::ProcessEvent()
             bfWeights[i] *= topPtWeight;
     }
     
+    if (reweighter)
+    {
+        double const weight = reweighter->GetWeight();
+        
+        for (int i = 0; i < bfNumWeights; ++i)
+            bfWeights[i] *= weight;
+    }
+    
     
     
     // Define some shortcuts and reconstruct W boson
