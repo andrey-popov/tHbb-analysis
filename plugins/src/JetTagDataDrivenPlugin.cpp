@@ -1,5 +1,7 @@
 #include <JetTagDataDrivenPlugin.hpp>
 
+#include <Processor.hpp>
+
 #include <algorithm>
 #include <stdexcept>
 

@@ -78,7 +78,7 @@ void DumpClassMvaPlugin::BeginRun(Dataset const &dataset)
     builderTTbar =
      dynamic_cast<RecoTTbarPlugin const *>(processor->GetPluginBefore("RecoTTbar", name));
     dataDrivenTTbar = dynamic_cast<JetTagDataDrivenPlugin const *>(
-     processor->GetPluginBeforeQuite("DataDrivenTTbar", name));
+     processor->GetPluginBeforeQuiet("DataDrivenTTbar", name));
     
     // Save pointer to top-pt reweighter
     topPtReweighter = dynamic_cast<TopPtWeightPlugin const *>(
