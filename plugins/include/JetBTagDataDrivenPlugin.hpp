@@ -16,7 +16,7 @@
 #include <PhysicsObjects.hpp>
 
 #include <string>
-#include <vector>
+#include <deque>
 
 
 /**
@@ -24,8 +24,9 @@
  * \brief Abstract base class for a data-driven estimation based on b-tagging
  * 
  * The class provides an interface for a data-driven estimation that relies on b-tagging. A derived
- * class is expected to store indices of jets that should be considered as b-tagged in the vector
- * taggedJetIndices. Several convenience functions to access b-tagging information are provided.
+ * class is expected to fill the mask jetTagBits so that it indicates which jets should be
+ * considered as b-tagged. Several convenience functions to access b-tagging information are
+ * provided.
  */
 class JetBTagDataDrivenPlugin: public BTaggerPlugin, public EventWeightPlugin
 {
@@ -54,20 +55,20 @@ public:
     virtual void BeginRun(Dataset const &dataset);
     
     /**
-     * \brief Returns a vector of indices of tagged jets
+     * \brief Returns a mask that indicates which jets should be considered as b-tagged
      * 
      * The indices must correpond to the vector returned by PECReader::GetJets. Default
-     * implementation simply returns a reference to taggedJetIndices.
+     * implementation simply returns a reference to jetTagBits.
      * 
-     * The returned vector must be sorted in incresing order. The method might be called several
-     * times for each event. The second and subsequent calls should be cheap.
+     * The method might be called several times for each event. The second and subsequent calls
+     * should be cheap.
      */
-    virtual std::vector<unsigned> const &GetTaggedJetIndices() const;
+    virtual std::deque<bool> const &GetJetTagDecisions() const;
     
     /**
      * \brief Checks if the given jet should be considered as tagged
      * 
-     * First the method finds to which index in the collection PECReader::GetJets the given jet
+     * First, the method finds to which index in the collection PECReader::GetJets the given jet
      * corresponds. If not match is found, an exception is thrown. Otherwise, evaluation is
      * delegated to IsTagged(unsigned).
      */
@@ -82,6 +83,10 @@ protected:
     /// Pointer to PECReaderPlugin
     PECReaderPlugin const *reader;
     
-    /// Indices of jets that should be considered tagged
-    std::vector<unsigned> taggedJetIndices;
+    /**
+     * \brief A mask that specifies which jets should be considered as b-tagged
+     * 
+     * If PECReader::GetJets().at(i) should be b-tagged, jetTagBits.at(i) is true.
+     */
+    std::deque<bool> jetTagBits;
 };

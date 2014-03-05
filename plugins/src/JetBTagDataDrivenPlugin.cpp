@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <sstream>
 
 
 using namespace std;
@@ -20,7 +21,7 @@ JetBTagDataDrivenPlugin::JetBTagDataDrivenPlugin(string const &name_) noexcept:
 JetBTagDataDrivenPlugin::JetBTagDataDrivenPlugin(JetBTagDataDrivenPlugin const &src) noexcept:
     Plugin(src),
     BTaggerPlugin(src), EventWeightPlugin(src),
-    reader(src.reader), taggedJetIndices(src.taggedJetIndices)
+    reader(src.reader), jetTagBits(src.jetTagBits)
 {}
 
 
@@ -35,9 +36,9 @@ void JetBTagDataDrivenPlugin::BeginRun(Dataset const &)
 }
 
 
-vector<unsigned> const &JetBTagDataDrivenPlugin::GetTaggedJetIndices() const
+deque<bool> const &JetBTagDataDrivenPlugin::GetJetTagDecisions() const
 {
-    return taggedJetIndices;
+    return jetTagBits;
 }
 
 
@@ -62,7 +63,20 @@ bool JetBTagDataDrivenPlugin::IsTagged(Jet const &jet) const
 
 bool JetBTagDataDrivenPlugin::IsTagged(unsigned index) const
 {
-    auto const res = find(taggedJetIndices.begin(), taggedJetIndices.end(), index);
+    if (index >= jetTagBits.size())
+    {
+        ostringstream ost;
+        ost << "JetBTagDataDrivenPlugin::IsTagged: The given jet index " << index << " does not " <<
+         "match the size of the mask of tagged jets, which is " << jetTagBits.size() << ". ";
+        
+        if (jetTagBits.size() != (*reader)->GetJets().size())
+            ost << "The size of the mask does not agree with the size of the jet collection (" <<
+             (*reader)->GetJets().size() << ") as well.";
+        else
+            ost << "The size of the mask agrees with the size of the jet collection.";
+        
+        throw logic_error(ost.str());
+    }
     
-    return (res != taggedJetIndices.end());
+    return jetTagBits.at(index);
 }
