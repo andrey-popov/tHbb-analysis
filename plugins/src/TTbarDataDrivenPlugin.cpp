@@ -1,5 +1,7 @@
 #include <TTbarDataDrivenPlugin.hpp>
 
+#include <ROOTLock.hpp>
+
 #include <TFile.h>
 
 #include <fstream>
@@ -95,21 +97,35 @@ void TTbarDataDrivenPlugin::BeginRun(Dataset const &dataset)
       }
     }
     
+    
+    ROOTLock::Lock();
+    
     // Read in Tagging Efficiencies
-    eff2D = new TFile("effcalc_muon_tight_ttbar-mg_rev468_xYe.root");
-    if ( !eff2D->IsOpen() ) throw logic_error("efficiency file not opened correctly");
-    effbpt = (TH1F*)eff2D->Get("eff_bpt");
-    effbeta = (TH1F*)eff2D->Get("eff_beta");
-    effcpt = (TH1F*)eff2D->Get("eff_cpt");
-    effceta = (TH1F*)eff2D->Get("eff_ceta");
-    effudspt = (TH1F*)eff2D->Get("eff_udspt");
-    effudseta = (TH1F*)eff2D->Get("eff_udseta");
-    effgpt = (TH1F*)eff2D->Get("eff_gpt");
-    effgeta = (TH1F*)eff2D->Get("eff_geta");
-    effb2d = (TH1F*)eff2D->Get("eff_b2d");
-    effc2d = (TH1F*)eff2D->Get("eff_c2d");
-    effuds2d = (TH1F*)eff2D->Get("eff_uds2d");
-    effg2d = (TH1F*)eff2D->Get("eff_g2d");
+    TFile eff2D("effcalc_muon_tight_ttbar-mg_rev468_xYe.root");
+    if ( !eff2D.IsOpen() ) throw logic_error("efficiency file not opened correctly");
+    effbpt = (TH1F*)eff2D.Get("eff_bpt");
+    effbeta = (TH1F*)eff2D.Get("eff_beta");
+    effcpt = (TH1F*)eff2D.Get("eff_cpt");
+    effceta = (TH1F*)eff2D.Get("eff_ceta");
+    effudspt = (TH1F*)eff2D.Get("eff_udspt");
+    effudseta = (TH1F*)eff2D.Get("eff_udseta");
+    effgpt = (TH1F*)eff2D.Get("eff_gpt");
+    effgeta = (TH1F*)eff2D.Get("eff_geta");
+    effb2d = (TH1F*)eff2D.Get("eff_b2d");
+    effc2d = (TH1F*)eff2D.Get("eff_c2d");
+    effuds2d = (TH1F*)eff2D.Get("eff_uds2d");
+    effg2d = (TH1F*)eff2D.Get("eff_g2d");
+    
+    // Detach the histograms from the parent file
+    for (auto const &h: {effbpt, effbeta, effcpt, effceta, effudspt, effudseta, effgpt, effgeta,
+     effb2d, effc2d, effuds2d, effg2d})
+    {
+      if (h)
+        h->SetDirectory(nullptr);
+    }
+    
+    ROOTLock::Unlock();
+    
 
     if (dataset.IsMC()) isMC = true;
 
