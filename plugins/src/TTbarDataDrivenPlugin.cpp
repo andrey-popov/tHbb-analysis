@@ -116,9 +116,8 @@ void TTbarDataDrivenPlugin::BeginRun(Dataset const &dataset)
 
 bool TTbarDataDrivenPlugin::ProcessEvent()
 {
-  // Put all the reconstructed jets into a single vector
-  allJets.clear();
-  allJets.insert(allJets.end(), (*reader)->GetJets().begin(), (*reader)->GetJets().end());
+  // A short-cut
+  auto const &allJets = (*reader)->GetJets();
 
   // Count jets and tags
   int nJets = allJets.size();

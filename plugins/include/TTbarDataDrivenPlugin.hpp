@@ -86,9 +86,6 @@ protected:
   // Can later be put into a nested map
   std::map < float, std::vector<int> > FlavFracs4, FlavFracs5, FlavFracs6, FlavFracs7, FlavFracs8, FlavFracs9, FlavFracs10;
 
-  /// Vector off all jets in an event
-  std::vector<Jet> allJets;
-
   TRandom3 r3;
   
   float ttweight3T = 0.;
