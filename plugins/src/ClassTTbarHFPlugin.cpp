@@ -49,23 +49,24 @@ bool ClassTTbarHFPlugin::ProcessEvent()
     }
     
     
-    // Find the two b quarks from decays of tops
-    array<GenParticle const *, 2> bTops;
+    // Find quarks whose descendants should be removed from the above list. They are quarks produced
+    //in electroweak interactions, namely b quarks from decays of tops and c quarks from decays of
+    //W bosons
+    ewkPartons.clear();
     unsigned numBTopsFound = 0;
     
     for (GenParticle const &p: (*reader)->GetHardGenParticles())
     {
-        if (abs(p.GetPdgId()) != 5)
-            continue;
-        
-        if (abs(p.GetFirstMother()->GetPdgId()) == 6)
+        if (abs(p.GetPdgId()) == 5 and abs(p.GetFirstMother()->GetPdgId()) == 6)
+        //^ b quarks from decays of tops
         {
-            bTops.at(numBTopsFound) = &p;
+            ewkPartons.push_back(&p);
             ++numBTopsFound;
         }
         
-        if (numBTopsFound == 2)  // there is nothing else to check here
-            break;
+        if (abs(p.GetPdgId()) == 4 and abs(p.GetFirstMother()->GetPdgId()) == 24)
+        //^ Charms from decays of W bosons from top quarks
+            ewkPartons.push_back(&p);
     }
     
     // A sanity check
@@ -74,19 +75,19 @@ bool ClassTTbarHFPlugin::ProcessEvent()
          "decays of the tops.");
     
     
-    // Remove from the collection of additional partons two b quarks closest to the quarks from
-    //decays of tops
-    for (auto const &bTop: bTops)
+    // Remove from the collection of additional partons those partons that are closest to the quarks
+    //produced in electroweak interactions
+    for (auto const &ewkParton: ewkPartons)
     {
         auto closestPartonIt = additionalPartons.end();
         double minDistance = numeric_limits<double>::infinity();
         
         for (auto pIt = additionalPartons.begin(); pIt != additionalPartons.end(); ++pIt)
         {
-            if (abs((*pIt)->GetPdgId()) != 5)
+            if ((*pIt)->GetPdgId() != ewkParton->GetPdgId())
                 continue;
             
-            double const dR = (*pIt)->P4().DeltaR(bTop->P4());
+            double const dR = (*pIt)->P4().DeltaR(ewkParton->P4());
             
             if (dR < minDistance)
             {
@@ -97,8 +98,8 @@ bool ClassTTbarHFPlugin::ProcessEvent()
         
         // Sanity check
         if (closestPartonIt == additionalPartons.end())
-            throw runtime_error("ClassTTbarHFPlugin::ProcessEvent: Cannot match a b quark from "
-             "decay of a top to any b quark from the parton shower.");
+            throw runtime_error("ClassTTbarHFPlugin::ProcessEvent: Cannot match a status-3 quark "
+             "produced in electroweak interaction to any quark from the parton shower.");
         
         
         // Remove this parton

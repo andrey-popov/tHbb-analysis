@@ -95,6 +95,18 @@ private:
      */
     std::list<ShowerParton const *> additionalPartons;
     
-    /// Contains numbers of heavy-flavour partons matched to each reconstructed jet
+    /**
+     * \brief Status-3 quarks whose descendants are explicitly removed from collection
+     * additionalPartons
+     * 
+     * The collection is declared at the class scope for performance reasons.
+     */
+    std::vector<GenParticle const *> ewkPartons;
+    
+    /**
+     * \brief Contains numbers of heavy-flavour partons matched to each reconstructed jet
+     * 
+     * The collection is declared at the class scope for performance reasons.
+     */
     std::vector<HFCounter> partonCounts;
 };
