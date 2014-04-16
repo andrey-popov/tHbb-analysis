@@ -123,18 +123,21 @@ void DumpClassMvaPlugin::BeginRun(Dataset const &dataset)
 
 void DumpClassMvaPlugin::EndRun()
 {
-    // Operations with ROOT objects performed here are not thread-safe and must be guarded
-    ROOTLock::Lock();
-    
-    // Write the tree and close the file
-    file->cd();
-    tree->Write("", TObject::kOverwrite);
-    
-    // Delete the objects
-    tree.reset();
-    file.reset();
-    
-    ROOTLock::Unlock();
+    if (storeResponse)
+    {
+        // Operations with ROOT objects performed here are not thread-safe and must be guarded
+        ROOTLock::Lock();
+        
+        // Write the tree and close the file
+        file->cd();
+        tree->Write("", TObject::kOverwrite);
+        
+        // Delete the objects
+        tree.reset();
+        file.reset();
+        
+        ROOTLock::Unlock();
+    }
 }
 
 
