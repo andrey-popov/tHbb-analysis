@@ -20,6 +20,7 @@ DumpClassMvaPlugin::DumpClassMvaPlugin(string const &name_, string const &bTagPl
     Plugin(name_),
     bTagPluginName(bTagPluginName_), weightPluginName(weightPluginName_),
     mva("Silent"),
+    storeResponse(true),
     outDirectory(outDirectory_), filePostfix(filePostfix_),
     saveSystWeights(saveSystWeights_)
 {
@@ -31,30 +32,7 @@ DumpClassMvaPlugin::DumpClassMvaPlugin(string const &name_, string const &bTagPl
     boost::filesystem::create_directories(outDirectory);
     
     
-    // Specify input variables and MVA for event reconstruction
-    mva.AddVariable("glb_Charge_Lep", &glb_Charge_Lep);
-    mva.AddVariable("log(glb_SqrtSHat)", &glb_LogSqrtSHat);
-    mva.AddVariable("log(glb_Pt_J1)", &glb_LogPt_J1);
-    mva.AddVariable("log(glb_MET)", &glb_LogMET);
-    mva.AddVariable("log(thq_Pt_Higgs)", &thq_LogPt_Higgs);
-    mva.AddVariable("log(thq_Pt_Recoil)", &thq_LogPt_Recoil);
-    mva.AddVariable("thq_Cos_LepRecoil_TH", &thq_Cos_LepRecoil_TH);
-    mva.AddVariable("abs(thq_Eta_Recoil)", &thq_AbsEta_Recoil);
-    mva.AddVariable("glb_Sphericity", &glb_Sphericity);
-    mva.AddVariable("tt_MaxEta_Light", &tt_MaxEta_Light);
-    mva.AddVariable("log(tt_Mass_TopHad)", &tt_LogMass_TopHad);
-    mva.AddVariable("log(tt_DMass_TopHadWHad)", &tt_LogDMass_TopHadWHad);
-    mva.AddVariable("log(tt_MaxMass_BTopHadLight)", &tt_LogMaxMass_BTopHadLight);
-    mva.AddVariable("thq_NumBTag_Higgs", &thq_NumBTag_Higgs);
-    mva.AddVariable("tt_NumPassBTag_Light", &tt_NumPassBTag_Light);
-    mva.AddVariable("thq_DeltaR_BJetsHiggs", &thq_DeltaR_BJetsHiggs);
-    mva.AddVariable("tt_DeltaR_Light", &tt_DeltaR_Light);
-    mva.AddVariable("tt_SumCharge_Light", &tt_SumCharge_Light);
-    mva.AddVariable("tt_Charge_BTopHad", &tt_Charge_BTopHad);
-    
-    mva.BookMVA("Default", "/afs/cern.ch/user/a/aapopov/workspace/tHq/2012Bravo/"
-     "2014.02.24_Full-analysis/Step1_MVA/class/Train/weights/"
-     "THvsBkg_Global_THvsBkg_Global_BFGS.weights.xml");
+    BookMVA();
     
     
     // Set the number of weights in an event
@@ -65,10 +43,23 @@ DumpClassMvaPlugin::DumpClassMvaPlugin(string const &name_, string const &bTagPl
 }
 
 
+DumpClassMvaPlugin::DumpClassMvaPlugin(string const &name_, string const &bTagPluginName_):
+    Plugin(name_),
+    bTagPluginName(bTagPluginName_),
+    mva("Silent"),
+    storeResponse(false)
+{
+    BookMVA();
+}
+
+
 Plugin *DumpClassMvaPlugin::Clone() const
 {
-    return new DumpClassMvaPlugin(name, bTagPluginName, weightPluginName, outDirectory, filePostfix,
-     saveSystWeights);
+    if (storeResponse)
+        return new DumpClassMvaPlugin(name, bTagPluginName, weightPluginName, outDirectory,
+         filePostfix, saveSystWeights);
+    else
+        return new DumpClassMvaPlugin(name, bTagPluginName);
 }
 
 
@@ -91,39 +82,42 @@ void DumpClassMvaPlugin::BeginRun(Dataset const &dataset)
      processor->GetPluginBeforeQuiet(weightPluginName, name));
     
     
-    // Creation of ROOT objects is not thread-safe and must be protected
-    ROOTLock::Lock();
-    
-    // Create the output file
-    string fileName(dataset.GetFiles().front().GetBaseName());
-    //fileName = fileName.substr(0, fileName.find_first_of('_'));
-    string fullFileName = outDirectory + fileName;
-    
-    if (filePostfix.length() > 0)
-        fullFileName += "_" + filePostfix;
-    
-    fullFileName += ".root";
-    
-    file.reset(new TFile(fullFileName.c_str(), "recreate"));
-    
-    // Create the tree
-    tree.reset(new TTree("Vars", "Response of the classification MVA"));
-    
-    // End of critical block
-    ROOTLock::Unlock();
-    
-    
-    // Assign branch addresses
-    tree->Branch("EventNumber", &bfEventNumber);
-    tree->Branch("RunNumber", &bfRunNumber);
-    tree->Branch("LumiSection", &bfLumiSection);
-    
-    tree->Branch("NumTag20", &bfNumTag20);
-    
-    tree->Branch("NumWeights", &bfNumWeights);
-    tree->Branch("Weights", bfWeights, "Weights[NumWeights]/F");
-    
-    tree->Branch("MvaResponse", &bfMvaResponse);
+    if (storeResponse)
+    {
+        // Creation of ROOT objects is not thread-safe and must be protected
+        ROOTLock::Lock();
+        
+        // Create the output file
+        string fileName(dataset.GetFiles().front().GetBaseName());
+        //fileName = fileName.substr(0, fileName.find_first_of('_'));
+        string fullFileName = outDirectory + fileName;
+        
+        if (filePostfix.length() > 0)
+            fullFileName += "_" + filePostfix;
+        
+        fullFileName += ".root";
+        
+        file.reset(new TFile(fullFileName.c_str(), "recreate"));
+        
+        // Create the tree
+        tree.reset(new TTree("Vars", "Response of the classification MVA"));
+        
+        // End of critical block
+        ROOTLock::Unlock();
+        
+        
+        // Assign branch addresses
+        tree->Branch("EventNumber", &bfEventNumber);
+        tree->Branch("RunNumber", &bfRunNumber);
+        tree->Branch("LumiSection", &bfLumiSection);
+        
+        tree->Branch("NumTag20", &bfNumTag20);
+        
+        tree->Branch("NumWeights", &bfNumWeights);
+        tree->Branch("Weights", bfWeights, "Weights[NumWeights]/F");
+        
+        tree->Branch("MvaResponse", &bfMvaResponse);
+    }
 }
 
 
@@ -157,7 +151,7 @@ bool DumpClassMvaPlugin::ProcessEvent()
     // Save event weight(s)
     bfWeights[0] = (*reader)->GetCentralWeight();
     
-    if (saveSystWeights)
+    if (storeResponse and saveSystWeights)
     {
         auto const &puWeights = (*reader)->GetSystWeight(SystTypeWeight::PileUp);
         bfWeights[1] = puWeights.front().up;
@@ -172,7 +166,7 @@ bool DumpClassMvaPlugin::ProcessEvent()
         bfWeights[6] = mistagWeights.front().down;
     }
     
-    if (topPtReweighter)
+    if (storeResponse and topPtReweighter)
     {
         double const topPtWeight = topPtReweighter->GetWeight();
         
@@ -180,7 +174,7 @@ bool DumpClassMvaPlugin::ProcessEvent()
             bfWeights[i] *= topPtWeight;
     }
     
-    if (reweighter)
+    if (storeResponse and reweighter)
     {
         double const weight = reweighter->GetWeight();
         
@@ -368,7 +362,42 @@ bool DumpClassMvaPlugin::ProcessEvent()
     
     
     // Finally, fill the tree
-    tree->Fill();
+    if (storeResponse)
+        tree->Fill();
     
     return true;
+}
+
+
+float DumpClassMvaPlugin::GetResponse() const noexcept
+{
+    return bfMvaResponse;
+}
+
+
+void DumpClassMvaPlugin::BookMVA()
+{
+    mva.AddVariable("glb_Charge_Lep", &glb_Charge_Lep);
+    mva.AddVariable("log(glb_SqrtSHat)", &glb_LogSqrtSHat);
+    mva.AddVariable("log(glb_Pt_J1)", &glb_LogPt_J1);
+    mva.AddVariable("log(glb_MET)", &glb_LogMET);
+    mva.AddVariable("log(thq_Pt_Higgs)", &thq_LogPt_Higgs);
+    mva.AddVariable("log(thq_Pt_Recoil)", &thq_LogPt_Recoil);
+    mva.AddVariable("thq_Cos_LepRecoil_TH", &thq_Cos_LepRecoil_TH);
+    mva.AddVariable("abs(thq_Eta_Recoil)", &thq_AbsEta_Recoil);
+    mva.AddVariable("glb_Sphericity", &glb_Sphericity);
+    mva.AddVariable("tt_MaxEta_Light", &tt_MaxEta_Light);
+    mva.AddVariable("log(tt_Mass_TopHad)", &tt_LogMass_TopHad);
+    mva.AddVariable("log(tt_DMass_TopHadWHad)", &tt_LogDMass_TopHadWHad);
+    mva.AddVariable("log(tt_MaxMass_BTopHadLight)", &tt_LogMaxMass_BTopHadLight);
+    mva.AddVariable("thq_NumBTag_Higgs", &thq_NumBTag_Higgs);
+    mva.AddVariable("tt_NumPassBTag_Light", &tt_NumPassBTag_Light);
+    mva.AddVariable("thq_DeltaR_BJetsHiggs", &thq_DeltaR_BJetsHiggs);
+    mva.AddVariable("tt_DeltaR_Light", &tt_DeltaR_Light);
+    mva.AddVariable("tt_SumCharge_Light", &tt_SumCharge_Light);
+    mva.AddVariable("tt_Charge_BTopHad", &tt_Charge_BTopHad);
+    
+    mva.BookMVA("Default", "/afs/cern.ch/user/a/aapopov/workspace/tHq/2012Bravo/"
+     "2014.02.24_Full-analysis/Step1_MVA/class/Train/weights/"
+     "THvsBkg_Global_THvsBkg_Global_BFGS.weights.xml");
 }

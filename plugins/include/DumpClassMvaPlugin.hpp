@@ -2,7 +2,8 @@
  * \file DumpClassMvaPlugin.hpp
  * \author Andrey Popov
  * 
- * Defines a plugin to dump response of the classification MVA.
+ * Defines a plugin to calculate response of the classification MVA. The plugin might be configured
+ * to store the reponse and few auxiliary variables in a ROOT tree.
  */
 
 #pragma once
@@ -24,15 +25,16 @@
 
 /**
  * \class DumpClassMvaPlugin
- * \brief Dumps response of the classification MVA and few service variables
+ * \brief Calculates response of the classification MVA
  * 
- * \warning Definition of a b-tagged jet is hard-coded.
+ * Depending on the configuration, the plugin either stores the response and few additional
+ * variables in a ROOT file or returns the response with the help of a dedicated method only.
  */
 class DumpClassMvaPlugin: public Plugin
 {
 public:
     /**
-     * \brief Constructor
+     * \brief Constructor that configures the plugin to store the MVA response in a ROOT file
      * 
      * Accepts the name of the directory to host the produced files and a postfix to be applied
      * to the names of output files.
@@ -40,6 +42,11 @@ public:
     DumpClassMvaPlugin(std::string const &name, std::string const &bTagPluginName,
      std::string const &weightPluginName, std::string const &outDirectory,
      std::string const &filePostfix, bool saveSystWeights);
+    
+    /**
+     * \brief Constructor that configures the plugin not to store the MVA response
+     */
+    DumpClassMvaPlugin(std::string const &name, std::string const &bTagPluginName);
     
 public:
     /**
@@ -73,6 +80,13 @@ public:
      */
     bool ProcessEvent();
     
+    /// Returns response of the classification MVA for the current event
+    float GetResponse() const noexcept;
+    
+private:
+    /// Books an appropriate MVA
+    void BookMVA();
+    
 private:
     /// Name of a b-tagging plugin
     std::string bTagPluginName;
@@ -101,6 +115,9 @@ private:
     
     /// Pointer to a plugin for additional reweighting
     EventWeightPlugin const *reweighter;
+    
+    /// Indicates whether MVA output should be stored in a ROOT file
+    bool storeResponse;
     
     /// Classification MVA
     TMVA::Reader mva;
