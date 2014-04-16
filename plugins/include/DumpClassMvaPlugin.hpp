@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <Plugin.hpp>
+#include <BinaryDiscriminatorPlugin.hpp>
 
 #include <PECReaderPlugin.hpp>
 #include <TopPtWeightPlugin.hpp>
@@ -30,7 +30,7 @@
  * Depending on the configuration, the plugin either stores the response and few additional
  * variables in a ROOT file or returns the response with the help of a dedicated method only.
  */
-class DumpClassMvaPlugin: public Plugin
+class DumpClassMvaPlugin: public BinaryDiscriminatorPlugin
 {
 public:
     /**
@@ -54,14 +54,14 @@ public:
      * 
      * Consult documentation of the overriden method for details.
      */
-    Plugin *Clone() const;
+    virtual Plugin *Clone() const;
     
     /**
      * \brief Notifies this that a dataset has been opened
      * 
      * Creates the output tree. Consult documentation of the overriden method for details.
      */
-    void BeginRun(Dataset const &dataset);
+    virtual void BeginRun(Dataset const &dataset);
     
     /**
      * \brief Notifies this that a dataset has been closed
@@ -69,7 +69,7 @@ public:
      * Writes down the current output tree. Consult documentation of the overriden method for
      * details.
      */
-    void EndRun();
+    virtual void EndRun();
     
     /**
      * \brief Processes the current event
@@ -78,10 +78,10 @@ public:
      * that the input variables are written for perfectly matched events only. Consult documentation
      * of the overriden method for details.
      */
-    bool ProcessEvent();
+    virtual bool ProcessEvent();
     
     /// Returns response of the classification MVA for the current event
-    float GetResponse() const noexcept;
+    virtual double GetResponse() const noexcept;
     
 private:
     /// Books an appropriate MVA

@@ -17,10 +17,10 @@ using namespace std;
 DumpClassMvaPlugin::DumpClassMvaPlugin(string const &name_, string const &bTagPluginName_,
  string const &weightPluginName_, string const &outDirectory_, string const &filePostfix_,
  bool saveSystWeights_):
-    Plugin(name_),
+    BinaryDiscriminatorPlugin(name_),
     bTagPluginName(bTagPluginName_), weightPluginName(weightPluginName_),
-    mva("Silent"),
     storeResponse(true),
+    mva("Silent"),
     outDirectory(outDirectory_), filePostfix(filePostfix_),
     saveSystWeights(saveSystWeights_)
 {
@@ -44,10 +44,10 @@ DumpClassMvaPlugin::DumpClassMvaPlugin(string const &name_, string const &bTagPl
 
 
 DumpClassMvaPlugin::DumpClassMvaPlugin(string const &name_, string const &bTagPluginName_):
-    Plugin(name_),
+    BinaryDiscriminatorPlugin(name_),
     bTagPluginName(bTagPluginName_),
-    mva("Silent"),
-    storeResponse(false)
+    storeResponse(false),
+    mva("Silent")
 {
     BookMVA();
 }
@@ -369,7 +369,7 @@ bool DumpClassMvaPlugin::ProcessEvent()
 }
 
 
-float DumpClassMvaPlugin::GetResponse() const noexcept
+double DumpClassMvaPlugin::GetResponse() const noexcept
 {
     return bfMvaResponse;
 }
