@@ -105,7 +105,7 @@ private:
     
     // Buffers to store input variables for event reconstruction
     float LogDMass_TopHadWHad, LogMass_WHad, LogMass_BTopLepLep;
-    float PassBTag_BTopLep, PassBTag_BTopHad, NumBTag_Light;
+    float NumBTag_Light;
     float DeltaR_Light, DeltaR_BTopHadWHad, DeltaR_BTopLepWLep;
     float RelHt, LogPt_TopLep, LogPt_TopHad, AbsEta_TopHad;
     float DCharge_BTopHadBTopLep;  // (Q(b_thad) - Q(b_tlep)) * Q(l)

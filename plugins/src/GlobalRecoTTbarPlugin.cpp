@@ -20,8 +20,6 @@ GlobalRecoTTbarPlugin::GlobalRecoTTbarPlugin(string const &name_, string const &
     mvaReco.AddVariable("log(Mass_WHad)", &LogMass_WHad);
     mvaReco.AddVariable("log(Mass_BTopLepLep)", &LogMass_BTopLepLep);
     mvaReco.AddVariable("abs(Eta_TopHad)", &AbsEta_TopHad);
-    mvaReco.AddVariable("PassBTag_BTopLep", &PassBTag_BTopLep);
-    mvaReco.AddVariable("PassBTag_BTopHad", &PassBTag_BTopHad);
     mvaReco.AddVariable("NumBTag_Light", &NumBTag_Light);
     mvaReco.AddVariable("DeltaR_Light", &DeltaR_Light);
     mvaReco.AddVariable("DeltaR_BTopHadWHad", &DeltaR_BTopHadWHad);
@@ -33,8 +31,7 @@ GlobalRecoTTbarPlugin::GlobalRecoTTbarPlugin(string const &name_, string const &
     mvaReco.AddVariable("SumCharge_Light", &SumCharge_Light);
     
     mvaReco.BookMVA("Default", "/afs/cern.ch/user/a/aapopov/workspace/tHq/2012Bravo/"
-     "2014.02.24_Full-analysis/Step1_MVA/ttbar/Train/weights/"
-     "GlobalTTbarReco_GlobalTTbarReco_BFGS.weights.xml");
+     "2014.05.19_New-MVA/ttbar/Train/weights/GlobalTTbarReco_GlobalTTbarReco_BFGS_v3.weights.xml");
 }
 
 
@@ -67,30 +64,30 @@ bool GlobalRecoTTbarPlugin::ProcessEvent()
             for (unsigned i3 = i2 + 1; i3 < jets.size() - 1; ++i3)
                 for (unsigned i4 = i3 + 1; i4 < jets.size(); ++i4)
                 {
-                    // Find central jets
-                    array<unsigned, 4> centralJetIndices;
-                    unsigned nCentralJets = 0;
+                    // Find b-tagged jets
+                    array<unsigned, 4> bTaggedJetIndices;
+                    unsigned nTaggedJets = 0;
                     
                     for (unsigned const &idx: {i1, i2, i3, i4})
-                        if (fabs(jets.at(idx).Eta()) < 2.4)
+                        if (bTagger->IsTagged(jets.at(idx)))
                         {
-                            centralJetIndices.at(nCentralJets) = idx;
-                            ++nCentralJets;
+                            bTaggedJetIndices.at(nTaggedJets) = idx;
+                            ++nTaggedJets;
                         }
                     
-                    if (nCentralJets < 2)
+                    if (nTaggedJets < 2)
                         continue;
                     
                     
-                    // Consider all the ways to choose two b-jets out of the central ones
-                    for (unsigned icBTopLep = 0; icBTopLep < nCentralJets; ++icBTopLep)
-                        for (unsigned icBTopHad = 0; icBTopHad < nCentralJets; ++icBTopHad)
+                    // Consider all the ways to choose two b-jets out of the b-tagged ones
+                    for (unsigned icBTopLep = 0; icBTopLep < nTaggedJets; ++icBTopLep)
+                        for (unsigned icBTopHad = 0; icBTopHad < nTaggedJets; ++icBTopHad)
                         {
                             if (icBTopHad == icBTopLep)
                                 continue;
                             
-                            unsigned const iBTopLepProposed = centralJetIndices.at(icBTopLep);
-                            unsigned const iBTopHadProposed = centralJetIndices.at(icBTopHad);
+                            unsigned const iBTopLepProposed = bTaggedJetIndices.at(icBTopLep);
+                            unsigned const iBTopHadProposed = bTaggedJetIndices.at(icBTopHad);
                             
                             
                             // The two chosen b-jets define the light-flavour jets in the chosen
@@ -181,7 +178,7 @@ void GlobalRecoTTbarPlugin::CalculateVariables(Jet const &bTopLep, Jet const &bT
     
     //bfPt_BTopLep = bTopLep.Pt();
     //bfEta_BTopLep = bTopLep.Eta();
-    PassBTag_BTopLep = 0 + bTagger->IsTagged(bTopLep);
+    //PassBTag_BTopLep = 0 + bTagger->IsTagged(bTopLep);
     //bfCharge_BTopLep = bTopLep.Charge() * lepton.Charge();
     
     LogMass_BTopLepLep = log((bTopLep.P4() + lepton.P4()).M());
@@ -218,7 +215,7 @@ void GlobalRecoTTbarPlugin::CalculateVariables(Jet const &bTopLep, Jet const &bT
     
     //bfPt_BTopHad = bTopHad.Pt();
     //bfEta_BTopHad = bTopHad.Eta();
-    PassBTag_BTopHad = 0 + bTagger->IsTagged(bTopHad);
+    //PassBTag_BTopHad = 0 + bTagger->IsTagged(bTopHad);
     //bfCharge_BTopHad = bTopHad.Charge() * lepton.Charge();
     
     //bfMinPt_Light = min(fabs(q1TopHad.Pt()), fabs(q2TopHad.Pt()));
