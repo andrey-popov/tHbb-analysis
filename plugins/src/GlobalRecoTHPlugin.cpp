@@ -30,7 +30,7 @@ GlobalRecoTHPlugin::GlobalRecoTHPlugin(string const &name_, string const &bTagPl
     mvaReco.AddVariable("Charge_BTop", &Charge_BTop);
     
     mvaReco.BookMVA("Default", "/afs/cern.ch/user/a/aapopov/workspace/tHq/2012Bravo/"
-     "2014.05.19_New-MVA/tHq/Train/weights/GlobalTHReco_GlobalTHReco_BFGS_v3.weights.xml");
+     "2014.05.19_New-MVA/tHq/Train/weights/GlobalTHReco_BFGS_v3.weights.xml");
 }
 
 

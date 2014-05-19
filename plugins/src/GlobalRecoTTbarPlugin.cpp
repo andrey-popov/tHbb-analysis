@@ -31,7 +31,7 @@ GlobalRecoTTbarPlugin::GlobalRecoTTbarPlugin(string const &name_, string const &
     mvaReco.AddVariable("SumCharge_Light", &SumCharge_Light);
     
     mvaReco.BookMVA("Default", "/afs/cern.ch/user/a/aapopov/workspace/tHq/2012Bravo/"
-     "2014.05.19_New-MVA/ttbar/Train/weights/GlobalTTbarReco_GlobalTTbarReco_BFGS_v3.weights.xml");
+     "2014.05.19_New-MVA/ttbar/Train/weights/GlobalTTbarReco_BFGS_v3.weights.xml");
 }
 
 
