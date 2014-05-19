@@ -20,7 +20,7 @@
 
 /**
  * \class GlobalRecoTHPlugin
- * \brief Reconstructs a thq event exploiting correlations between the objects
+ * \brief Reconstructs a tHq event exploiting correlations between different objects
  * 
  * \warning It considers only jets from PECReader::GetJets(), but not the "additional" jets.
  */
@@ -106,9 +106,9 @@ private:
     // Buffers to store input variables for event reconstruction
     float LogMass_Higgs, LogMass_BTopLep;
     float AbsEta_Recoil;
-    float PassBTag_Recoil, PassBTag_BTop, NumBTag_Higgs;
+    float PassBTag_BTop, NumBTag_Higgs;
     float DeltaR_BJetsHiggs, DeltaR_BTopW, DeltaR_TopHiggs;
     float RelHt;
     float MaxEta_BHiggs, LogMinPt_BHiggs;
-    float Cos_LepRecoil_TH, Charge_BTop;
+    float Charge_BTop;
 };

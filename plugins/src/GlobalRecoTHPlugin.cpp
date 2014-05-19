@@ -19,7 +19,6 @@ GlobalRecoTHPlugin::GlobalRecoTHPlugin(string const &name_, string const &bTagPl
     mvaReco.AddVariable("log(Mass_Higgs)", &LogMass_Higgs);
     mvaReco.AddVariable("log(Mass_BTopLep)", &LogMass_BTopLep);
     mvaReco.AddVariable("abs(Eta_Recoil)", &AbsEta_Recoil);
-    mvaReco.AddVariable("PassBTag_Recoil", &PassBTag_Recoil);
     mvaReco.AddVariable("PassBTag_BTop", &PassBTag_BTop);
     mvaReco.AddVariable("NumBTag_Higgs", &NumBTag_Higgs);
     mvaReco.AddVariable("DeltaR_BJetsHiggs", &DeltaR_BJetsHiggs);
@@ -28,12 +27,10 @@ GlobalRecoTHPlugin::GlobalRecoTHPlugin(string const &name_, string const &bTagPl
     mvaReco.AddVariable("RelHt", &RelHt);
     mvaReco.AddVariable("MaxEta_BHiggs", &MaxEta_BHiggs);
     mvaReco.AddVariable("log(MinPt_BHiggs)", &LogMinPt_BHiggs);
-    mvaReco.AddVariable("Cos_LepRecoil_TH", &Cos_LepRecoil_TH);
     mvaReco.AddVariable("Charge_BTop", &Charge_BTop);
     
     mvaReco.BookMVA("Default", "/afs/cern.ch/user/a/aapopov/workspace/tHq/2012Bravo/"
-     "2014.02.24_Full-analysis/Step1_MVA/thq/Train/weights/"
-     "GlobalTHReco_GlobalTHReco_BFGS.weights.xml");
+     "2014.05.19_New-MVA/tHq/Train/weights/GlobalTHReco_GlobalTHReco_BFGS_v3.weights.xml");
 }
 
 
@@ -118,8 +115,13 @@ bool GlobalRecoTHPlugin::ProcessEvent()
                                         continue;
                                     
                                     iRecoilJetProposed = index;
-                                    // Control will reach this line in one iteration only
+                                    // Control will reach this line only once
                                 }
+                                
+                                
+                                // Make sure the recoil jet is not b-tagged
+                                if (bTagger->IsTagged(jets.at(iRecoilJetProposed)))
+                                    continue;
                                 
                                 
                                 // Evaluate the MVA for the proposed match
@@ -225,7 +227,6 @@ void GlobalRecoTHPlugin::CalculateVariables(Jet const &bTop, Jet const &b1Higgs,
     // Variables related to the recoil quark
     //bfPt_Recoil = recoil.Pt();
     AbsEta_Recoil = fabs(recoil.Eta());
-    PassBTag_Recoil = 0 + bTagger->IsTagged(recoil);
     //bfCharge_Recoil = recoil.Charge();
     
     
@@ -238,17 +239,4 @@ void GlobalRecoTHPlugin::CalculateVariables(Jet const &bTop, Jet const &b1Higgs,
     RelHt = (top.Pt() + higgs.Pt() + recoil.Pt()) / Ht;
     
     DeltaR_TopHiggs = top.P4().DeltaR(higgs.P4());
-    
-    // Calculate the cosine in the rest frame of (t+h)
-    TVector3 b((higgs.P4() + top.P4()).BoostVector());
-    
-    TLorentzVector boostedLepton(lepton.P4());
-    boostedLepton.Boost(-b);
-    TVector3 p3Lepton(boostedLepton.Vect());
-    
-    TLorentzVector boostedRecoil(recoil.P4());
-    boostedRecoil.Boost(-b);
-    TVector3 const p3Recoil(boostedRecoil.Vect());
-    
-    Cos_LepRecoil_TH = p3Lepton.Dot(p3Recoil) / (p3Lepton.Mag() * p3Recoil.Mag());
 }
