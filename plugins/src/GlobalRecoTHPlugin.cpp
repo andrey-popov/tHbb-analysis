@@ -52,10 +52,9 @@ bool GlobalRecoTHPlugin::ProcessEvent()
 {
     auto const &jets = (*reader)->GetJets();
     
-    
-    // Reset jet indices
+    numInterpretations = 0;
+    highestMvaResponse = -numeric_limits<double>::infinity();
     iBTop = iB1Higgs = iB2Higgs = iRecoilJet = -1;
-    double highestRank = -numeric_limits<double>::infinity();    
     
     
     // Loop over all possible ways to choose four jets in the event
@@ -125,19 +124,20 @@ bool GlobalRecoTHPlugin::ProcessEvent()
                                 
                                 
                                 // Evaluate the MVA for the proposed match
+                                ++numInterpretations;
                                 CalculateVariables(jets.at(iBTopProposed),
                                  jets.at(iB1HiggsProposed), jets.at(iB2HiggsProposed),
                                  jets.at(iRecoilJetProposed));
-                                double const rank = mvaReco.EvaluateMVA("Default");
+                                double const response = mvaReco.EvaluateMVA("Default");
                                 
-                                if (rank > highestRank)
+                                if (response > highestMvaResponse)
                                 {
                                     iBTop = iBTopProposed;
                                     iB1Higgs = iB1HiggsProposed;
                                     iB2Higgs = iB2HiggsProposed;
                                     iRecoilJet = iRecoilJetProposed;
                                     
-                                    highestRank = rank;
+                                    highestMvaResponse = response;
                                 }
                             }
                         }
@@ -170,6 +170,18 @@ pair<Jet const &, Jet const &> GlobalRecoTHPlugin::GetBHiggs() const
     auto const &jets = (*reader)->GetJets();
     
     return {jets.at(iB1Higgs), jets.at(iB2Higgs)};
+}
+
+
+unsigned GlobalRecoTHPlugin::GetNumInterpretations() const
+{
+    return numInterpretations;
+}
+
+
+double GlobalRecoTHPlugin::GetMvaResponse() const
+{
+    return highestMvaResponse;
 }
 
 

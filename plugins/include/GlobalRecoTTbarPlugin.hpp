@@ -70,6 +70,12 @@ public:
      * The first jet in the pair has larger transverse momentum.
      */
     virtual std::pair<Jet const &, Jet const &> GetLightTopHad() const;
+    
+    /// Returns number of considered interpretations
+    unsigned GetNumInterpretations() const;
+    
+    /// Returns MVA response for the chosen interpretation
+    double GetMvaResponse() const;
 
 private:
     /**
@@ -101,6 +107,13 @@ private:
     
     /// Indices of jets that correspond to light-flavour quarks from hadronic decay of a top
     unsigned iL1TopHad, iL2TopHad;
+    
+    
+    /// Technical information: number of considered interpretations
+    unsigned numInterpretations;
+    
+    /// Technical information: highest MVA response
+    double highestMvaResponse;
     
     
     // Buffers to store input variables for event reconstruction

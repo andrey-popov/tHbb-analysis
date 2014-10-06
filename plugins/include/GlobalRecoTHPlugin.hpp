@@ -70,6 +70,12 @@ public:
      * The first jet in the pair has larger transverse momentum.
      */
     virtual std::pair<Jet const &, Jet const &> GetBHiggs() const;
+    
+    /// Returns number of considered interpretations
+    unsigned GetNumInterpretations() const;
+    
+    /// Returns MVA response for the chosen interpretation
+    double GetMvaResponse() const;
 
 private:
     /**
@@ -101,6 +107,13 @@ private:
     
     /// Indices of jets that correspond to b quarks from decay of a Higgs boson
     unsigned iB1Higgs, iB2Higgs;
+    
+    
+    /// Technical information: number of considered interpretations
+    unsigned numInterpretations;
+    
+    /// Technical information: highest MVA response
+    double highestMvaResponse;
     
     
     // Buffers to store input variables for event reconstruction

@@ -53,12 +53,12 @@ bool GlobalRecoTTbarPlugin::ProcessEvent()
 {
     auto const &jets = (*reader)->GetJets();
     
+    numInterpretations = 0;
+    highestMvaResponse = -numeric_limits<double>::infinity();
+    iBTopLep = iBTopHad = iL1TopHad = iL2TopHad = -1;
     
     // Loop over all possible ways to classify jets in the event and find the one with largest MVA
     //response
-    iBTopLep = iBTopHad = iL1TopHad = iL2TopHad = -1;
-    double highestRank = -numeric_limits<double>::infinity();
-    
     for (unsigned i1 = 0; i1 < jets.size() - 3; ++i1)
         for (unsigned i2 = i1 + 1; i2 < jets.size() - 2; ++i2)
             for (unsigned i3 = i2 + 1; i3 < jets.size() - 1; ++i3)
@@ -117,18 +117,19 @@ bool GlobalRecoTTbarPlugin::ProcessEvent()
                             //softer than the first one by construction
                             
                             
+                            ++numInterpretations;
                             CalculateVariables(jets.at(iBTopLepProposed), jets.at(iBTopHadProposed),
                              jets.at(iL1TopHadProposed), jets.at(iL2TopHadProposed));
-                            double const rank = mvaReco.EvaluateMVA("Default");
+                            double const response = mvaReco.EvaluateMVA("Default");
                             
-                            if (rank > highestRank)
+                            if (response > highestMvaResponse)
                             {
                                 iBTopLep = iBTopLepProposed;
                                 iBTopHad = iBTopHadProposed;
                                 iL1TopHad = iL1TopHadProposed;
                                 iL2TopHad = iL2TopHadProposed;
                                 
-                                highestRank = rank;
+                                highestMvaResponse = response;
                             }
                         }
                 }
@@ -161,6 +162,18 @@ pair<Jet const &, Jet const &> GlobalRecoTTbarPlugin::GetLightTopHad() const
     auto const &jets = (*reader)->GetJets();
     
     return {jets.at(iL1TopHad), jets.at(iL2TopHad)};
+}
+
+
+unsigned GlobalRecoTTbarPlugin::GetNumInterpretations() const
+{
+    return numInterpretations;
+}
+
+
+double GlobalRecoTTbarPlugin::GetMvaResponse() const
+{
+    return highestMvaResponse;
 }
 
 
