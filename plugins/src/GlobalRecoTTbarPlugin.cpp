@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <algorithm>
 #include <array>
+#include <cstdlib>
+#include <string>
 
 
 using namespace std;
@@ -30,8 +32,11 @@ GlobalRecoTTbarPlugin::GlobalRecoTTbarPlugin(string const &name_, string const &
     mvaReco.AddVariable("Charge_BTopHad - Charge_BTopLep", &DCharge_BTopHadBTopLep);
     mvaReco.AddVariable("SumCharge_Light", &SumCharge_Light);
     
-    mvaReco.BookMVA("Default", "/afs/cern.ch/user/a/aapopov/workspace/tHq/2012Bravo/"
-     "2014.05.19_New-MVA/ttbar/Train/weights/GlobalTTbarReco_BFGS_v3.weights.xml");
+    
+    // Read the install path from the environment
+    string const path(getenv("TH_ANALYSIS_INSTALL"));
+    
+    mvaReco.BookMVA("Default", path + "/data/GlobalTTbarReco_BFGS_v3.weights.xml");
 }
 
 

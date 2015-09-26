@@ -10,6 +10,9 @@
 
 #include <boost/filesystem.hpp>
 
+#include <cstdlib>
+#include <string>
+
 
 using namespace std;
 
@@ -400,7 +403,9 @@ void DumpClassMvaPlugin::BookMVA()
     mva.AddVariable("tt_SumCharge_Light", &tt_SumCharge_Light);
     mva.AddVariable("tt_Charge_BTopHad", &tt_Charge_BTopHad);
     
-    mva.BookMVA("Default", "/afs/cern.ch/user/a/aapopov/workspace/tHq/2012Bravo/"
-     "2014.02.24_Full-analysis/Step1_MVA/class/Train/weights/"
-     "THvsBkg_Global_THvsBkg_Global_BFGS.weights.xml");
+    
+    // Read the install path from the environment
+    string const path(getenv("TH_ANALYSIS_INSTALL"));
+    
+    mva.BookMVA("Default", path + "/data/THvsBkg_Global_BFGS_v3a.weights.xml");
 }

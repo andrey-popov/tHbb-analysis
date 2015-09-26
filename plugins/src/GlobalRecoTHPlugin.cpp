@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <algorithm>
 #include <array>
+#include <cstdlib>
+#include <string>
 
 
 using namespace std;
@@ -29,8 +31,11 @@ GlobalRecoTHPlugin::GlobalRecoTHPlugin(string const &name_, string const &bTagPl
     mvaReco.AddVariable("log(MinPt_BHiggs)", &LogMinPt_BHiggs);
     mvaReco.AddVariable("Charge_BTop", &Charge_BTop);
     
-    mvaReco.BookMVA("Default", "/afs/cern.ch/user/a/aapopov/workspace/tHq/2012Bravo/"
-     "2014.05.19_New-MVA/tHq/Train/weights/GlobalTHReco_BFGS_v3.weights.xml");
+    
+    // Read the install path from the environment
+    string const path(getenv("TH_ANALYSIS_INSTALL"));
+    
+    mvaReco.BookMVA("Default", path + "/data/GlobalTHReco_BFGS_v3.weights.xml");
 }
 
 
